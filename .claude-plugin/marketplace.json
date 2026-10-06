@@ -1,0 +1,22 @@
+{
+  "name": "mario-skills",
+  "owner": {
+    "name": "MerzMario",
+    "email": "merzmario@163.com"
+  },
+  "metadata": {
+    "description": "Personal Agent Skills for Obsidian vault workflows and local-first writing",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "mario-skills",
+      "description": "Obsidian vault and local-first writing skills, orchestrated by shell scripts instead of LLM guesswork",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/diary-writer"
+      ]
+    }
+  ]
+}

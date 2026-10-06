@@ -1,0 +1,40 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+*.tgz
+coverage/
+.nyc_output/
+
+# Skill runtime state — never commit user data
+.env
+.env.*
+!.env.example
+.config/
+*.local
+
+# Local overrides (mirrors the .baoyu-skills/ convention)
+.mario-skills/
+
+# Agent runtime state
+.omo/
+.opencode/
+.codegraph
+
+# Generated output
+outputs/
+tmp/
+*.bak
+*.log
+
+# Editors / OS
+.idea/
+.vscode/
+*.iml
+*.swp

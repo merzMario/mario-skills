@@ -1,0 +1,11 @@
+{
+  "name": "mario-skills",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "Personal Agent Skills marketplace for Obsidian vault workflows",
+  "scripts": {
+    "validate": "node ./scripts/validate-marketplace.mjs",
+    "test": "node ./scripts/validate-marketplace.mjs"
+  }
+}
