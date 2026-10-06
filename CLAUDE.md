@@ -152,15 +152,18 @@ No dependencies, no network, runs in CI on every push and PR.
 
 ## Release Process
 
-Version lives in `metadata.version` in `marketplace.json`. The marketplace updates from the GitHub repo's tags/default branch, so:
+`metadata.version` in `marketplace.json` is the number humans read; the `v<version>` git tag is the matching release anchor. Be aware these are two different things: Claude Code's `/plugin marketplace update` does **not** read either one — it re-clones the default branch and reports the commit SHA as the version. So a tag gives you a stable release point and a human-readable version, not update gating. Release anyway, because it makes rollbacks and diffing possible.
+
+Order:
 
 1. Update `CHANGELOG.md`
 2. Bump `metadata.version` in `.claude-plugin/marketplace.json`
 3. Update `README.md` / `README.zh.md` if skills were added
 4. `npm run validate`
 5. Commit everything together, then push
+6. Tag the commit: `git tag -a "v$VERSION" -m "..."` and `git push origin "v$VERSION"`
 
-Never split the manifest and changelog across commits — users get a marketplace update mid-release otherwise.
+Never split the manifest bump and the changelog across commits — users get a marketplace update mid-release otherwise.
 
 ## Security & Safety Rules
 
