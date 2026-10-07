@@ -14,13 +14,15 @@ description: 记录日记。当用户说"记录 / 写日记 / 记一下 / 今天
 `diary-writer` 需要知道 Vault 在哪。任一层配置命中即可（完整优先级见第三节）；如果脚本返回 `config_not_found`，**引导用户执行**：
 
 ```bash
-bash scripts/diary_write.sh --init            # 真跑，写 config.ini
-bash scripts/diary_write.sh --init --env      # 真跑，写共享 ~/.mario-skills/.env
+bash scripts/diary_write.sh --init            # 真跑，写 ~/.mario-skills/.env
+bash scripts/diary_write.sh --init --project  # 写 <cwd>/.mario-skills/.env，仅当前项目生效
 bash scripts/diary_write.sh --init --dry-run  # 预演，只显示将要写什么
 bash scripts/diary_write.sh --detect          # 仅列出 Obsidian 检测到的 vault
 ```
 
-`--init` 写 diary-writer 专属的 `config.ini`。`--init --env` 改写共享的 `~/.mario-skills/.env` —— 该文件里其他技能的 key 和你自己的注释都会保留，只更新 diary-writer 这四个。默认值预填自当前已解析出的值，所以重跑显示的是你现在的真实配置。
+`--init` 写入合并 —— 该文件里其他技能的 key 和你自己的注释都会保留，只更新 diary-writer 这四个。默认值预填自当前已解析出的值，所以重跑显示的是你现在的真实配置。
+
+`--init` 依然不是 LLM 该跑的东西。
 
 `--init` 会问四个问题：Vault 目录、日记子目录、状态目录、默认标签：
 - Vault 默认值自动从 Obsidian 的 `obsidian.json` 探测（macOS / Linux / Windows 都支持）
@@ -65,12 +67,13 @@ LLM **只做**：
 | 1 | `process.env` | `VAULT_DIR=/x bash diary_write.sh` | 单次调用 |
 | 2 | 项目级 `.env` | `<cwd>/.mario-skills/.env` | **所有 mario 技能共用** |
 | 3 | 用户级 `.env` | `~/.mario-skills/.env` | **所有 mario 技能共用** |
-| 4 | `config.ini` | `$DIARY_CONFIG` → `$XDG_CONFIG_HOME/diary-obsidian/config.ini` → `~/.config/diary-obsidian/config.ini` | 仅 diary-writer |
-| 5 | 内置默认值 | 脚本常量 | — |
+| 4 | 内置默认值 | 脚本常量 | — |
 
-`.mario-skills/.env` 是**整个 marketplace 共用的约定**：仓库里每个技能都读同样这两个文件，所以一个 key 或路径只写一次，所有技能都能看到。四个 key（`VAULT_DIR` / `JOURNALS_SUBDIR` / `STATE_DIR` / `TEMPLATE_TAGS`）在每一层里拼写完全一致，因此 `config.ini` 可以原样搬进 `.mario-skills/.env`。
+`.mario-skills/.env` 是**唯一**配置文件，也是整个 marketplace 共用的约定：仓库里每个技能都读同样这两个文件，所以一个 key 或路径只写一次，所有技能都能看到。四个 key（`VAULT_DIR` / `JOURNALS_SUBDIR` / `STATE_DIR` / `TEMPLATE_TAGS`）拼写在各层完全一致。
 
 **逐 key 独立解析**，不是全有或全无：只设 `VAULT_DIR` 不会让其他三个 key 丢失。
+
+> ⚠️ v2.0.0 起不再读取 `~/.config/diary-obsidian/config.ini`。旧用户把内容原样搬到 `~/.mario-skills/.env` 即可，两种文件语法相同，纯文件移动无需改写。
 
 ### 查配置来源（排错用）
 
@@ -101,7 +104,7 @@ frontmatter（`date` / `week` / `tags`）和标题（`# 📅 YYYY-MM-DD 星期X`
 
 1. **不评价 / 不分析 / 不改写原意** —— 原文怎么发，存进去就是什么
 2. **不修改"日记原文"模块外的章节** —— 脚本只动 frontmatter / 标题 / 模块头 / 时间戳块
-3. **不修改用户的 config.ini** —— LLM 永远不该写配置；如需改配置，让用户重跑 `--init`
+3. **不修改用户的 `.mario-skills/.env`** —— LLM 永远不该写配置；如需改配置，让用户重跑 `--init`
 
 ---
 
@@ -112,7 +115,7 @@ frontmatter（`date` / `week` / `tags`）和标题（`# 📅 YYYY-MM-DD 星期X`
 - ❌ 在日记原文里添加 AI 分析、改写原意
 - ❌ 写到日记原文以外的任何模块
 - ❌ 假设 vault 是 iCloud Vault（必须走 config）
-- ❌ 自己读 `.mario-skills/.env` 或 `config.ini` 来取配置 —— 交给脚本解析
+- ❌ 自己读 `.mario-skills/.env` 来取配置 —— 交给脚本解析
 - ❌ 打印、回显或写进任何文件 `.mario-skills/.env` 里的值（那是共享凭据文件，可能含 API key）
 - ❌ 往 `.mario-skills/.env` 写任何东西（连注释和空行都不要）—— 那是人负责的文件
 - ❌ 手写 `VAULT_DIR=...` 之类的环境变量去"修"配置 —— 层 1 会静默压过用户所有配置，优先用 `--config-info` 定位问题

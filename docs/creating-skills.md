@@ -88,7 +88,7 @@ The human-facing document. Cover:
 - Why the skill exists — what goes wrong without it
 - 30-second quickstart
 - Architecture diagram
-- Configuration schema, with a link to `examples/config.full.ini`
+- Configuration schema, with a link to `examples/env.shared.example`
 - Known boundaries and honest limitations, including anything platform- or language-specific
 - License
 
@@ -105,10 +105,10 @@ Be honest about limitations. `diary-writer/README.md` documents that its weekday
 
 ### If the skill needs config, it reads the shared `.env`
 
-Do not invent a new config file or a new location. Read the two shared files, in this order:
+`.mario-skills/.env` is the only config file in this marketplace. Do not invent a new format or a new location. Read the two shared files, in this order:
 
 ```
-process env  →  <cwd>/.mario-skills/.env  →  ~/.mario-skills/.env  →  own config.ini  →  defaults
+process env  →  <cwd>/.mario-skills/.env  →  ~/.mario-skills/.env  →  defaults
 ```
 
 Implement it with a parse-never-source reader, in bash:
@@ -160,20 +160,19 @@ $ ./script.sh --config-info
 
 Sources (highest priority first):
   API_KEY       ~/.mario-skills/.env
-  MODEL         ./config.ini
+  MODEL         built-in default
   BASE_URL      built-in default
 
 Search path:
   [1] process.env
   [2] /project/.mario-skills/.env  (found)
   [3] /Users/you/.mario-skills/.env  (found)
-  [4] /Users/you/.config/skill/config.ini  (absent)
 ```
 
 Support `--json` alongside it. And when config is missing entirely, the error must enumerate **every** location searched as a structured field, so the agent can relay it verbatim:
 
 ```json
-{"ok":false,"error":"config_not_found","searched":["process.env","<cwd>/.mario-skills/.env","~/.mario-skills/.env","/Users/you/.config/skill/config.ini"],"hint":"run: ./script.sh --init"}
+{"ok":false,"error":"config_not_found","searched":["process.env","<cwd>/.mario-skills/.env","~/.mario-skills/.env"],"hint":"run: ./script.sh --init"}
 ```
 
 Never have the agent parse or read the config files itself. The script answers; the agent relays.

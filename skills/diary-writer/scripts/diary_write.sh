@@ -12,30 +12,25 @@
 #   1. process environment            VAULT_DIR=... bash diary_write.sh
 #   2. <cwd>/.mario-skills/.env       project-level, shared by all mario skills
 #   3. ~/.mario-skills/.env          user-level, shared by all mario skills
-#   4. diary-writer config.ini        $DIARY_CONFIG, else $XDG_CONFIG_HOME, else ~/.config
-#   5. built-in defaults
+#   4. built-in defaults
 #
-# .mario-skills/.env is the marketplace-wide convention — sibling skill
-# directories read these same two files, so a key is written once.
+# .mario-skills/.env is the only config file, and the marketplace-wide
+# convention — sibling skill directories read these same two files, so a key
+# is written once.
 #
 # All paths are configurable. Run --init once, then the script is portable.
 
 set -uo pipefail
 
-VERSION="1.1.0"
+VERSION="2.0.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_DIR="$(dirname "$SCRIPT_DIR")"
 TEMPLATE_FILE="$SKILL_DIR/templates/diary-template.md"
 
-# === XDG-aware defaults (overridable by config) ===
-DEFAULT_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/diary-obsidian"
-DEFAULT_CONFIG_PATH="$DEFAULT_CONFIG_DIR/config.ini"
 DEFAULT_STATE_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/diary-obsidian"
 DEFAULT_VAULT_DIR="$HOME/Documents/Obsidian"
 DEFAULT_JOURNALS_SUBDIR="journals"
 DEFAULT_TEMPLATE_TAGS="日记,复盘"
-
-CONFIG_PATH="${DIARY_CONFIG:-$DEFAULT_CONFIG_PATH}"
 
 # === Shared .env files (the mario-skills convention) ===
 # Overridable so tests and unusual layouts can relocate them.
@@ -61,40 +56,37 @@ diary_write.sh v$VERSION — portable diary writer
 Usage:
   printf '%s' "entry" | bash diary_write.sh          # append to today's journal
   bash diary_write.sh --init                         # first-run setup wizard
-  bash diary_write.sh --init --env                   # wizard writes the shared .mario-skills/.env
+  bash diary_write.sh --init --project               # write the project-level .env instead
   bash diary_write.sh --init --dry-run               # preview init, no files written
   bash diary_write.sh --detect                       # list Obsidian vaults from app config
   bash diary_write.sh --config-info                  # show resolved config and where each value came from
   bash diary_write.sh --config-info --json           # same, machine-readable
-  bash diary_write.sh --config PATH                  # override config.ini location
   bash diary_write.sh --help                         # this help
   bash diary_write.sh --version                      # print version
 
 Flags:
-  --init         run the first-run setup wizard (interactive)
-  --env          with --init: write into the shared ~/.mario-skills/.env
-                 instead of diary-writer's own config.ini. Existing keys in
-                 that file are preserved; only diary-writer's four are updated.
+  --init         run the first-run setup wizard (interactive). Writes
+                 ~/.mario-skills/.env, merging so other skills' keys and your
+                 own comments survive
+  --project      with --init: write <cwd>/.mario-skills/.env instead, which
+                 applies only when diary-writer runs from this directory
   --dry-run      with --init: walk the wizard, print what would change,
                  write nothing, create no directories
   --detect       list vaults found in Obsidian's config (no writes)
   --config-info  print resolved values plus the source of each, and whether
                  each search location exists
-  --config PATH  use PATH instead of the default config.ini location
 
 Output (stdout): JSON { ok, action, path, duplicate, backup }
 
 Config priority (highest first):
-  1. process environment         VAULT_DIR=/path bash diary_write.sh
-  2. <cwd>/.mario-skills/.env     project-level, shared by all mario skills
-  3. ~/.mario-skills/.env        user-level, shared by all mario skills
-  4. \$DIARY_CONFIG, else \$XDG_CONFIG_HOME/diary-obsidian/config.ini,
-     else ~/.config/diary-obsidian/config.ini
-  5. built-in defaults
+  1. process environment       VAULT_DIR=/path bash diary_write.sh
+  2. <cwd>/.mario-skills/.env   project-level, shared by all mario skills
+  3. ~/.mario-skills/.env      user-level, shared by all mario skills
+  4. built-in defaults
 
-Keys (VAULT_DIR, JOURNALS_SUBDIR, STATE_DIR, TEMPLATE_TAGS) are spelled the
-same in every layer, so a config.ini can be moved into .mario-skills/.env
-as-is. The .env files are parsed, never sourced, and are not committed.
+Keys (VAULT_DIR, JOURNALS_SUBDIR, STATE_DIR, TEMPLATE_TAGS) are resolved
+independently, so setting one does not reset the others. The .env files are
+parsed, never sourced, and are not committed.
 
 State dir (hashes, logs, backups):
   \$XDG_DATA_HOME/diary-obsidian  →  ~/.local/share/diary-obsidian
@@ -202,8 +194,10 @@ cmd_init() {
     trap 'rm -f "$DIARY_TMP_INPUTRC"' RETURN
   fi
 
-  local INIT_DEST="$CONFIG_PATH"
-  if [ "$target" = "env" ]; then
+  local INIT_DEST
+  if [ "$target" = "project" ]; then
+    INIT_DEST="$ENV_PROJECT_FILE"
+  else
     INIT_DEST="$ENV_HOME_FILE"
   fi
 
@@ -219,14 +213,14 @@ cmd_init() {
   if [ "$dry_run" = "true" ]; then
     echo "⚠️  DRY-RUN — no files will be written, no directories will be created"
   fi
-  if [ "$target" = "env" ]; then
-    echo "📄 Target: shared $INIT_DEST (read by every mario-skills skill)"
+  if [ "$target" = "project" ]; then
+    echo "📄 Target: project-level $INIT_DEST"
+    echo "   Applies only when diary-writer runs from this directory."
   else
-    echo "📄 Target: $INIT_DEST (diary-writer only)"
-    echo "   Use --init --env to write into the shared .mario-skills/.env instead."
+    echo "📄 Target: user-level $INIT_DEST"
+    echo "   Applies everywhere. Use --init --project for a single project instead."
   fi
   echo ""
-  echo "Config will be saved to: $INIT_DEST"
   echo "Press Enter to accept defaults in [brackets]."
   echo ""
 
@@ -326,8 +320,9 @@ cmd_init() {
 
   # Compose the config content into a string, decide at the end whether to persist
   local CONFIG_CONTENT
-  CONFIG_CONTENT="# diary-writer config
-# Generated by --init on $(date "+%Y-%m-%d %H:%M:%S")
+  CONFIG_CONTENT="# diary-writer
+# Written by --init on $(date "+%Y-%m-%d %H:%M:%S")
+# Shared file — other mario-skills keys may follow below.
 VAULT_DIR=$VAULT_DIR
 JOURNALS_SUBDIR=$JOURNALS_SUBDIR
 STATE_DIR=$STATE_DIR
@@ -340,7 +335,7 @@ TEMPLATE_TAGS=$TEMPLATE_TAGS"
     printf '%s\n' "$CONFIG_CONTENT"
     echo "---"
     echo ""
-    if [ "$target" = "env" ] && [ -f "$INIT_DEST" ]; then
+    if [ -f "$INIT_DEST" ]; then
       echo "⚠️  $INIT_DEST already exists. Existing keys not listed above are preserved."
     fi
     echo "Nothing was changed. Re-run without --dry-run to apply."
@@ -349,7 +344,7 @@ TEMPLATE_TAGS=$TEMPLATE_TAGS"
 
   mkdir -p "$(dirname "$INIT_DEST")"
 
-  if [ "$target" = "env" ] && [ -f "$INIT_DEST" ]; then
+  if [ -f "$INIT_DEST" ]; then
     # Merge, never truncate: the file is shared, so another skill's keys and
     # the user's own comments must survive a diary-writer re-init.
     local MERGED
@@ -378,9 +373,7 @@ TEMPLATE_TAGS=$TEMPLATE_TAGS"
 
   echo ""
   echo "✅ Config written to $INIT_DEST"
-  if [ "$target" = "env" ]; then
-    echo "   Every mario-skills skill reads this file. Keep it out of git."
-  fi
+  echo "   Every mario-skills skill reads this file. Keep it out of git."
   echo ""
   echo "Smoke test:"
   echo "  printf '%s' \"hello diary\" | bash $SCRIPT_DIR/diary_write.sh"
@@ -433,10 +426,6 @@ env_get() {
   printf '%s' "$found"
 }
 
-# Same file grammar as env_get; the two layers stay byte-compatible so a
-# config.ini can be moved into .mario-skills/.env without edits.
-ini_get() { env_get "$1" "$2"; }
-
 # Walks the priority chain for KEY and records which layer answered.
 # CURRENT is this process's inherited value for that key, snapshotted at
 # startup — resolve_setting must not read the variables it writes, or a
@@ -453,8 +442,6 @@ resolve_setting() {
     src="<cwd>/.mario-skills/.env"
   elif val="$(env_get "$key" "$ENV_HOME_FILE")"; then
     src="~/.mario-skills/.env"
-  elif val="$(ini_get "$key" "$CONFIG_PATH")"; then
-    src="$CONFIG_PATH"
   else
     val="$default"
     src="built-in default"
@@ -490,7 +477,6 @@ load_config() {
 process.env
 $ENV_PROJECT_FILE
 $ENV_HOME_FILE
-$CONFIG_PATH
 EOF
     printf '],"hint":"run: bash diary_write.sh --init"}\n'
     return 1
@@ -518,7 +504,7 @@ cmd_config_info() {
     printf '"TEMPLATE_TAGS":{"value":"%s","source":"%s"}'    "$TEMPLATE_TAGS"   "$SOURCE_TEMPLATE_TAGS"
     printf '},"searched":['
     first=1
-    for sp in "process.env" "$ENV_PROJECT_FILE" "$ENV_HOME_FILE" "$CONFIG_PATH"; do
+    for sp in "process.env" "$ENV_PROJECT_FILE" "$ENV_HOME_FILE"; do
       [ $first -eq 1 ] || printf ','
       if [ -f "$sp" ]; then mark="found"; else mark="absent"; fi
       printf '{"path":"%s","%s":"%s"}' "$sp" "$([ "$sp" = "process.env" ] && echo env || echo file)" "$mark"
@@ -545,7 +531,6 @@ cmd_config_info() {
   printf '  %-4s %s\n' "[1]" "process.env"
   printf '  %-4s %s\n' "[2]" "$ENV_PROJECT_FILE$([ -f "$ENV_PROJECT_FILE" ] && echo '  (found)')"
   printf '  %-4s %s\n' "[3]" "$ENV_HOME_FILE$([ -f "$ENV_HOME_FILE" ] && echo '  (found)')"
-  printf '  %-4s %s\n' "[4]" "$CONFIG_PATH$([ -f "$CONFIG_PATH" ] && echo '  (found)')"
   echo ""
   echo "Journals directory: $JOURNALS_DIR"
   [ -d "$JOURNALS_DIR" ] && echo "  ✓ exists" || echo "  ✗ missing — create it or re-run --init"
@@ -557,7 +542,7 @@ cmd_config_info() {
 
 INIT_REQUESTED="false"
 DRY_RUN="false"
-INIT_TARGET="ini"
+INIT_TARGET="home"
 CONFIG_INFO=""
 
 while [[ $# -gt 0 ]]; do
@@ -578,8 +563,8 @@ while [[ $# -gt 0 ]]; do
         shift
       fi
       ;;
-    --env)
-      INIT_TARGET="env"
+    --project)
+      INIT_TARGET="project"
       shift
       ;;
     --dry-run)
@@ -594,13 +579,10 @@ while [[ $# -gt 0 ]]; do
       echo "Version: $VERSION"
       exit 0
       ;;
-    --config)
-      if [[ $# -lt 2 ]]; then
-        echo "❌ --config requires a path argument" >&2
-        exit 1
-      fi
-      CONFIG_PATH="$2"
-      shift 2
+    --config|--env)
+      echo "❌ --config / --env were removed in v2.0.0. Config now lives only in .mario-skills/.env." >&2
+      echo "   Run --init for the wizard, or --config-info to see where values resolve from." >&2
+      exit 1
       ;;
     *)
       echo "❌ Unknown argument: $1" >&2

@@ -64,8 +64,7 @@ Every skill reads the same two `.env` files. Write a key once and all skills see
 | 1 | `KEY=value bash script.sh` | single invocation |
 | 2 | `<project>/.mario-skills/.env` | that project, overrides user |
 | 3 | `~/.mario-skills/.env` | all projects |
-| 4 | the skill's own `config.ini` | that skill only |
-| 5 | built-in defaults | — |
+| 4 | built-in defaults | — |
 
 ```ini
 # ~/.mario-skills/.env

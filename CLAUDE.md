@@ -49,7 +49,7 @@ A skill's `SKILL.md` should be readable as a **contract**, not a tutorial. If th
 State these explicitly in each SKILL.md. From `diary-writer`:
 
 - ❌ Never run interactive setup (`--init` / `--detect`) from inside an LLM call — those are for a human at a terminal
-- ❌ Never write the user's config file — the human owns config
+- ❌ Never write the user's `.mario-skills/.env` — the human owns config
 - ❌ Never rewrite, summarize, or editorialize the user's original content
 - ❌ Never write outside the module the skill owns
 
@@ -91,14 +91,13 @@ Every skill in this marketplace reads the same two files. A key is written once 
 | 1 | process env | `KEY=value bash script.sh` | single invocation |
 | 2 | project `.env` | `<cwd>/.mario-skills/.env` | one project, overrides user |
 | 3 | user `.env` | `~/.mario-skills/.env` | all projects |
-| 4 | skill config file | e.g. `config.ini` | that skill only |
-| 5 | built-in defaults | script constants | — |
+| 4 | built-in defaults | script constants | — |
 
 Rules:
 
 - **`.mario-skills/` is gitignored.** It holds credentials. Never commit it, never let a skill write it from an LLM call.
 - **Parse, never `source`.** A `.env` may contain `$(...)` or `;`. Sourcing it hands arbitrary code execution to a credentials file. Read `KEY=VALUE` line by line, strip one layer of matching quotes, and store the value as literal text. `printf -v` is the safe way to assign in bash; `eval` is not.
-- **Key names are identical in every layer.** A `config.ini` must be movable into `.mario-skills/.env` without renaming, so the wizard output and the env file use the same keys.
+- **`.mario-skills/.env` is the only config file.** Do not give a skill its own config format — `diary-writer` had one (`config.ini`) and it was removed in v2.0.0 because splitting config across two file formats costs users more than it buys. A skill that needs setup writes into the shared `.env` through its own `--init` wizard, merging per key so siblings' entries survive.
 - **Resolve per key, not all-or-nothing.** Setting only `VAULT_DIR` must not reset the other three to defaults.
 - **Ignore unknown keys.** A skill sees its own keys plus ignores the rest — that is what makes one shared file work.
 - Optional `MARIO_SKILLS_ENV` / `MARIO_SKILLS_PROJECT_ENV` relocate the two files, for tests and unusual layouts.

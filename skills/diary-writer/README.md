@@ -43,7 +43,7 @@ bash ~/.claude/skills/diary-writer/scripts/diary_write.sh --detect          # �
 ```
 
 `--init` 会问 4 个问题：Vault 在哪、日记子目录叫什么、状态目录放哪、默认标签写啥。
-答案存到 `~/.config/diary-obsidian/config.ini`。
+答案存到 `~/.mario-skills/.env`（共享文件，写入时合并，不会覆盖其他技能的 key）。
 
 **Vault 默认值自动从 Obsidian 的 `obsidian.json` 探测**（macOS / Linux / Windows 都支持）：
 
@@ -95,20 +95,22 @@ printf '%s' "用户原话" | bash scripts/diary_write.sh
 
 ---
 
-## 配置 schema
+## 配置
 
-`~/.config/diary-obsidian/config.ini`（或 `$DIARY_CONFIG` 指向的任意路径）：
+配置只有一个文件：`~/.mario-skills/.env`。四个 key：
 
 ```ini
-VAULT_DIR=/Users/you/Documents/Obsidian     # 必填，Vault 根目录
-JOURNALS_SUBDIR=journals                    # 相对 VAULT_DIR，默认 journals
-STATE_DIR=/Users/you/.local/share/diary-obsidian  # 哈希/日志/备份；XDG 默认
-TEMPLATE_TAGS=日记,复盘                      # frontmatter tags；留空=不写
+# 必填，Vault 根目录
+VAULT_DIR=/Users/you/Documents/Obsidian
+# 相对 VAULT_DIR，默认 journals
+JOURNALS_SUBDIR=journals
+# 哈希/日志/备份；XDG 默认 ~/.local/share/diary-obsidian
+STATE_DIR=/Users/you/.local/share/diary-obsidian
+# frontmatter tags；留空=不写
+TEMPLATE_TAGS=日记,复盘
 ```
 
-完整注释版见 [`examples/config.full.ini`](examples/config.full.ini)。
-
-`--config PATH` 可临时覆盖当前调用的 `config.ini` 路径。
+模板见 [`examples/env.shared.example`](examples/env.shared.example)。
 
 ---
 
@@ -131,18 +133,7 @@ TEMPLATE_TAGS=日记,复盘
 OPENAI_API_KEY=sk-...        # 其他技能的 key 放同一个文件
 ```
 
-四个 key 在每一层里拼写完全一致，所以 `config.ini` 可以**原样**搬进 `.mario-skills/.env`，不用改键名。`diary-writer` 会忽略不认识的 key，其他技能同理 —— 各写各的 block，共用一个文件。
-
-写入共享文件：
-
-```bash
-bash scripts/diary_write.sh --init --env            # 写入 ~/.mario-skills/.env
-bash scripts/diary_write.sh --init --env --dry-run  # 预览
-```
-
-`--init --env` 做的是**合并**，不是覆盖：文件里其他技能的 key、你自己写的注释都会原样保留，只更新 diary-writer 这四个。`--init`（不带 `--env`）仍然写 `config.ini`，行为不变。
-
-模板见 [`examples/env.shared.example`](examples/env.shared.example)。
+`diary-writer` 会忽略不认识的 key，其他技能同理 —— 各写各的 block，共用一个文件。
 
 ### 完整解析链
 
@@ -153,10 +144,29 @@ bash scripts/diary_write.sh --init --env --dry-run  # 预览
 | 1 | `process.env` | `VAULT_DIR=/x bash scripts/diary_write.sh` |
 | 2 | `<项目>/.mario-skills/.env` | 项目级，共享 |
 | 3 | `~/.mario-skills/.env` | 用户级，共享 |
-| 4 | `config.ini` | `$DIARY_CONFIG` → `$XDG_CONFIG_HOME` → `~/.config` |
-| 5 | 内置默认值 | 脚本常量 |
+| 4 | 内置默认值 | 脚本常量 |
 
 只设 `VAULT_DIR` 不会让其他三个 key 掉回默认值 —— 每个 key 各自走一遍链。
+
+### 初始化
+
+```bash
+bash scripts/diary_write.sh --init            # 写入 ~/.mario-skills/.env
+bash scripts/diary_write.sh --init --project  # 写入 <cwd>/.mario-skills/.env
+bash scripts/diary_write.sh --init --dry-run  # 预览
+```
+
+写入是**合并**，不是覆盖：文件里其他技能的 key、你自己写的注释都会原样保留，只更新 diary-writer 这四个。重跑 `--init` 时的默认值预填自当前解析值，显示的是你现在的真实配置。
+
+### 从 v1 的 `config.ini` 迁移
+
+v2.0.0 起不再读取 `~/.config/diary-obsidian/config.ini`。两种文件语法完全相同，**原样移动即可，无需改写**：
+
+```bash
+mkdir -p ~/.mario-skills
+mv ~/.config/diary-obsidian/config.ini ~/.mario-skills/.env
+bash scripts/diary_write.sh --config-info   # 确认来源变成 ~/.mario-skills/.env
+```
 
 ### 查来源
 
@@ -173,20 +183,19 @@ bash scripts/diary_write.sh --config-info --json   # 机读
 
 Sources (highest priority first):
   VAULT_DIR        ~/.mario-skills/.env
-  JOURNALS_SUBDIR  ~/.config/diary-obsidian/config.ini
+  JOURNALS_SUBDIR  ~/.mario-skills/.env
   ...
 
 Search path:
   [1] process.env
-  [2] /current/project/.mario-skills/.env  (found)
+  [2] /current/project/.mario-skills/.env  (absent)
   [3] /Users/you/.mario-skills/.env  (found)
-  [4] /Users/you/.config/diary-obsidian/config.ini  (found)
 ```
 
 配置全都没找到时，写入会返回 `config_not_found` 并在 `searched` 数组里列出**所有找过的位置**：
 
 ```json
-{"ok":false,"error":"config_not_found","searched":["process.env","<cwd>/.mario-skills/.env","~/.mario-skills/.env","/Users/you/.config/diary-obsidian/config.ini"],"hint":"run: bash diary_write.sh --init"}
+{"ok":false,"error":"config_not_found","searched":["process.env","<cwd>/.mario-skills/.env","~/.mario-skills/.env"],"hint":"run: bash diary_write.sh --init"}
 ```
 
 "写错 vault 了"这类问题的正确排查方式就是先跑 `--config-info`，看值到底来自哪一层。
@@ -213,7 +222,7 @@ Search path:
 - **Chinese-specific cleaning** —— 脚本里有一段 sed 把"作为一名"/"总而言之"/"我我我"洗掉。**非中文作者请审阅这段或直接删掉**（`scripts/diary_write.sh` 第 252 行附近的 `CLEANED=$(...)`）。
 - **Day-of-week 写死中文（一/二/.../日）** —— 标题里 `星期${WEEKDAY_CN}` 是中文格式。非中文作者请改 `WEEKDAY_CN` 映射。
 - **每天一个文件** —— 不支持跨天合并、不支持多日记并行。
-- **改 `config.ini` 后立即生效** —— 不需要重启任何东西；下次调用时读盘。
+- **改 `.mario-skills/.env` 后立即生效** —— 不需要重启任何东西；下次调用时读盘。
 - **不在 v0 范围**：移动端 / 锁文件 / 多 Vault 合并 / 日记导出。
 - **大小写不敏感路径补全** —— init 向导里默认开启（用 `INPUTRC` 临时文件加载）。如果在你的 macOS bash 上仍不生效（输入 `~/lib` + Tab 不能补全 `~/Library`），把下面这两行加进 `~/.inputrc`，影响所有 bash 会话：
   ```
@@ -237,9 +246,7 @@ diary-writer/
 ├── templates/
 │   └── diary-template.md       # 正文骨架模板（不含 frontmatter）
 ├── examples/
-│   ├── config.minimal.ini      # 最小配置
-│   ├── config.full.ini         # 全部选项 + 注释
-│   └── env.shared.example      # 共享 .mario-skills/.env 模板
+│   └── env.shared.example      # 共享 .mario-skills/.env 模板（含全部 key + 注释）
 ├── LICENSE                     # MIT
 └── README.md                   # 本文件
 ```

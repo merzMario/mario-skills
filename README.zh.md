@@ -64,8 +64,7 @@ cp -R skills/diary-writer <project>/.claude/skills/
 | 1 | `KEY=value bash script.sh` | 单次调用 |
 | 2 | `<项目>/.mario-skills/.env` | 该项目，覆盖用户级 |
 | 3 | `~/.mario-skills/.env` | 所有项目 |
-| 4 | 技能自己的 `config.ini` | 仅该技能 |
-| 5 | 内置默认值 | — |
+| 4 | 内置默认值 | — |
 
 ```ini
 # ~/.mario-skills/.env
