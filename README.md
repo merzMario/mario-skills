@@ -89,6 +89,7 @@ Skills that read from or write to a local markdown vault.
 
 | Skill | Description |
 |-------|-------------|
+| [`book-enquire-reader`](./skills/book-enquire-reader) | Long-book reader. Imports PDF/EPUB/TXT/Markdown into the vault and drives [enquire-mcp](https://github.com/oomkapwn/enquire-mcp) hybrid retrieval to produce chapter digests with `[page: N]` citations, without loading whole chapters into context. |
 | [`diary-writer`](./skills/diary-writer) | Append-only journal writer. One call appends one timestamped block to today's entry. Handles config discovery, ISO week numbers, MD5 dedup, backups, and JSON receipts. |
 
 ## Update Skills
