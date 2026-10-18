@@ -33,6 +33,12 @@ tmp/
 *.bak
 *.log
 
+# Python (skills with a Python core: dedao-course-sync, dankoe-letters-fetch)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
 # Editors / OS
 .idea/
 .vscode/

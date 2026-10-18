@@ -1,0 +1,19 @@
+{
+  "skill_name": "dankoe-letters-fetch",
+  "evals": [
+    {
+      "id": 1,
+      "name": "small-batch-3",
+      "prompt": "fetch the 3 most recent free Dan Koe articles from his newsletter archive at letters.thedankoe.com/archive?sort=new and save them as markdown into 00-Raw/DanKoe/原文/. Skip any articles that are already in that folder, and skip any that are paywalled (look for Subscribe to keep reading / Already a paid subscriber etc in the article body). Use the same structured frontmatter format the existing files there use: a # Title H1 followed by Source/Published/Author bold key/value lines, then a horizontal rule, then the body. Name files YYYYMMDD-{slug}-原文.md using the article's publish date.",
+      "expected_output": "3 new markdown files saved to 00-Raw/DanKoe/原文/ matching the 20250506/20250802 format (Source/Published/Author bold lines, body below the horizontal rule). Files NOT saved: paywalled articles, already-existing articles. Brief summary at end reporting fetched / skipped-already / skipped-paywall counts.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "idempotent-rerun",
+      "prompt": "re-run your Dan Koe fetcher one more time with the same defaults (10 newest free articles from letters.thedankoe.com/archive?sort=new into 00-Raw/DanKoe/原文/). It should dedup against what is already in the folder. Use the same structured frontmatter as before.",
+      "expected_output": "Either (a) some new files if there are unseen articles beyond what was saved last run, or (b) a clean report saying all candidates were already in 原文/ and nothing was saved. Should NOT touch or overwrite existing files.",
+      "files": []
+    }
+  ]
+}

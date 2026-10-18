@@ -99,6 +99,7 @@ Skills that pull external source material into the vault, unchanged.
 | Skill | Description |
 |-------|-------------|
 | [`dedao-course-sync`](./skills/dedao-course-sync) | Incremental sync of the 得到 精选 / 得到头条 columns into `raw/Courses-GetIt/`. Dedupes on Dedao's `article_id` so renamed titles never re-fetch, strips page chrome, and reports JSON receipts with a non-zero exit on any partial failure. |
+| [`dankoe-letters-fetch`](./skills/dankoe-letters-fetch) | Incremental fetch of Dan Koe's newsletter into `raw/DanKoe/原文/`. Dedupes on the exact URL slug so Substack republished versions (`-ef8`) still get fetched; encodes four Substack API constraints that fail silently when violated. |
 
 ## Update Skills
 

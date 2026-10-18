@@ -99,6 +99,7 @@ OPENAI_API_KEY=sk-...                     # 谁需要谁读自己的
 | 技能 | 说明 |
 |------|------|
 | [`dedao-course-sync`](./skills/dedao-course-sync) | 得到精选 / 得到头条增量同步到 `raw/Courses-GetIt/`。按得到侧 `article_id` 去重，标题改名不重抓；剥掉页面元素；JSON 回执，任一篇失败即非零退出。 |
+| [`dankoe-letters-fetch`](./skills/dankoe-letters-fetch) | Dan Koe newsletter 增量抓取到 `raw/DanKoe/原文/`。按精确 slug 去重，Substack 重发版（`-ef8`）仍会抓；把四条「违反后静默出错」的 Substack API 约束写进代码而非 prompt。 |
 
 ## 更新技能
 

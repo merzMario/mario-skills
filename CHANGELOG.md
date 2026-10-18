@@ -5,6 +5,26 @@ All notable changes to this marketplace. Format follows [Keep a Changelog](https
 The version here is the single source of truth — it lives in `metadata.version` in
 `.claude-plugin/marketplace.json` and is what users receive on marketplace update.
 
+## 0.7.0 - 2026-10-18
+
+### Features
+- `dankoe-letters-fetch`: incremental fetch of Dan Koe's newsletter into `raw/DanKoe/原文/`. Dedup keys on the exact URL slug; Substack republish suffixes (`-ef8`) are different articles and still get fetched
+- `dankoe-letters-fetch`: config moved onto the shared `.mario-skills/.env`. `VAULT_DIR` is the same key the other three skills already use — one write, four skills. Keys: `DANKOE_OUT_SUBDIR`, `DANKOE_SESSION`, `DANKOE_COUNT`, `DANKOE_STATE_DIR`, `OPENCLI_BIN`
+- `dankoe-letters-fetch`: `--init` / `--init --project` / `--init --dry-run` / `--detect` / `--config-info` (`--json`), config merged per key so sibling skills' keys and user comments survive a re-run
+- `dankoe-letters-fetch`: the four Substack API constraints are now code rather than prompt prose — the `limit=23` clamp, `body_html` being null in listings, `audience` as the only reliable paywall signal, and exact-slug dedup. None of them error when violated; they silently produce wrong results
+- `dankoe-letters-fetch`: stdout is one JSON receipt per subcommand; human-readable output moved to stderr
+
+### Fixes
+- `dankoe-letters-fetch`: **dedup was silently dead.** The skill read `00-Raw/DanKoe/原文/` but the vault reorganization on 2026-10-12 moved the real output to `raw/DanKoe/原文/`. The scan found an empty directory, so every run re-fetched all 95 articles. Now points at `raw/DanKoe/`, with a note in `env.shared.example` to keep the two in sync
+- `dankoe-letters-fetch`: any per-article failure now exits 1, so cron and launchd notice
+- `dankoe-letters-fetch`: the failure log moved out of the skill directory to `$DANKOE_STATE_DIR`, and a stale one is deleted after a clean run
+- `dankoe-letters-fetch`: `--dry-run` is documented honestly. It still needs network (the archive is an HTTP API) but opens no browser and writes nothing
+- `dankoe-letters-fetch`: `opencli` is only required for `fetch`. `list` enumerates over plain curl and works without the browser bridge
+
+### Notes
+- `exhausted: true` means "the archive is caught up", not "vault and archive agree". Measured 2026-10-18: 95 articles in the vault, 91 in the archive, and 5 of those return `Post not found` on both the archive and the single-post endpoint — deleted upstream.
+- The previous skill at `~/.claude/skills/dankoe-letters-fetch/` still points at the dead `00-Raw/` path. Remove or repoint it, or the agent will keep loading the broken copy.
+
 ## 0.6.0 - 2026-10-18
 
 ### Features
