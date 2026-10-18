@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Personal Agent Skills for Obsidian vault workflows and local-first writing",
-    "version": "0.7.0"
+    "version": "0.8.0"
   },
   "plugins": [
     {
@@ -18,7 +18,8 @@
         "./skills/book-enquire-reader",
         "./skills/dankoe-letters-fetch",
         "./skills/dedao-course-sync",
-        "./skills/diary-writer"
+        "./skills/diary-writer",
+        "./skills/wewrite"
       ]
     }
   ]

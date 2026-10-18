@@ -5,6 +5,27 @@ All notable changes to this marketplace. Format follows [Keep a Changelog](https
 The version here is the single source of truth — it lives in `metadata.version` in
 `.claude-plugin/marketplace.json` and is what users receive on marketplace update.
 
+## 0.8.0 - 2026-10-18
+
+### Features
+- `wewrite`: WeChat Official Account pipeline as a single skill — topic → brief and claims → draft → editorial pass, with images, formatting, and draft-box push as separate opt-in steps. Ported from [imraywang/wewrite](https://github.com/imraywang/wewrite) 4.2.1 (MIT), which shipped as a main skill plus nine sibling skills; collapsed into one directory because mario-skills requires every skill to be self-contained
+- `wewrite`: **the output root is now split from the state root.** `paths.out_dir()` reads `WEWRITE_OUT_DIR`, defaulting to `$VAULT_DIR/output/WeWrite`. Every run artifact — draft, brief, claims, sources, review report, images, preview — lands in the vault, while `config.yaml`, `style.yaml`, `history.yaml`, `playbook.md`, and the learning corpora stay on the machine. Upstream had one `WEWRITE_HOME` for both, which would have put WeChat credentials into a git repo that is also iCloud-synced
+- `wewrite`: run artifact paths are stored relative to the output root rather than as absolute paths, so moving `runs/` (or changing `WEWRITE_OUT_DIR`) keeps existing `state.yaml` resolvable
+- `wewrite`: config moved onto the shared `.mario-skills/.env`, replacing the per-skill `config.yaml`. Four-layer chain — process env → `<cwd>/.mario-skills/.env` → `~/.mario-skills/.env` → built-in defaults — resolved per key, so setting one key never resets another. The upstream `config.yaml` is retained as the lowest fallback layer, so old installs keep working
+- `wewrite`: `.env` values are parsed, never sourced. A credentials file that gets `source`d is a code-execution vector; `envconf.py` reads line by line and strips one layer of matching quotes
+- `wewrite`: `config-info` (`--json`) prints every resolved value, the layer that supplied it, and whether each search location exists — including redacted secrets. `out-dir` prints the resolved output directory. Debugging "it wrote to the wrong place" is one command
+- `wewrite`: `--init` detects `VAULT_DIR` and merges per key so sibling skills' entries and user comments survive a re-run; `--init --dry-run` changes nothing on disk and writes a timestamped `.bak` before the first real mutation
+- `wewrite`: the interpreter is discovered by probing for the actual dependencies (`pyyaml`, `requests`, `markdown`, `bs4`, `cssutils`, `pygments`, `Pillow`) rather than guessing from a path — macOS ships a `python3` without `yaml`. `--setup` builds a local `.venv`; a missing interpreter exits 3 with the reason instead of a traceback
+
+### Fixes
+- `wewrite`: `learn-edits` resolved recorded article paths against the state root, so it would have failed to find drafts that now live in the vault. Follows the same output-root rule as `runs.py`
+- `wewrite`: `diagnose` reports `out_dir` alongside `home`, so an agent can see where output goes without a second command
+
+### Notes
+- The vendored copy is versioned `4.2.1-mario.1` in `skills/wewrite/VERSION`, deliberately off the upstream tag. Syncing upstream means hand-merging `paths.py` and `envconf.py`; `toolkit/config.py` only gained the `.env` import
+- `raw/` is defined as immutable source material in this vault's `CLAUDE.md`, so output defaults to `output/WeWrite/` — the directory that vault already reserves for generated content. Targeting `02-Output/02-Platforms/微信公众号` instead is one line of config (`WEWRITE_OUT_SUBDIR`), not a code change
+- The pre-existing upstream install at `~/.claude/skills/wewrite*` (symlinks into `~/.cc-switch/skills/wewrite/`) is still active and will shadow or duplicate this skill. Remove it, or the agent may load the unported copy.
+
 ## 0.7.0 - 2026-10-18
 
 ### Features

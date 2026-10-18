@@ -68,7 +68,7 @@ cp -R skills/diary-writer <project>/.claude/skills/
 
 ```ini
 # ~/.mario-skills/.env
-VAULT_DIR=/Users/you/Documents/Obsidian   # diary-writer 读这个
+VAULT_DIR=/Users/you/Documents/Obsidian   # diary-writer、wewrite 读这个
 OPENAI_API_KEY=sk-...                     # 谁需要谁读自己的
 ```
 
@@ -100,6 +100,14 @@ OPENAI_API_KEY=sk-...                     # 谁需要谁读自己的
 |------|------|
 | [`dedao-course-sync`](./skills/dedao-course-sync) | 得到精选 / 得到头条增量同步到 `raw/Courses-GetIt/`。按得到侧 `article_id` 去重，标题改名不重抓；剥掉页面元素；JSON 回执，任一篇失败即非零退出。 |
 | [`dankoe-letters-fetch`](./skills/dankoe-letters-fetch) | Dan Koe newsletter 增量抓取到 `raw/DanKoe/原文/`。按精确 slug 去重，Substack 重发版（`-ef8`）仍会抓；把四条「违反后静默出错」的 Substack API 约束写进代码而非 prompt。 |
+
+### 发布类
+
+把 vault 里的内容发到平台的技能。
+
+| 技能 | 说明 |
+|------|------|
+| [`wewrite`](./skills/wewrite) | 公众号内容管道：选题 → 任务书与证据 → 初稿 → 编辑成稿，配图、排版、推草稿箱按需追加。移植自 [imraywang/wewrite](https://github.com/imraywang/wewrite)，改了两处：产出根（`WEWRITE_OUT_DIR`，默认 `$VAULT_DIR/output/WeWrite`）与状态根分离，全部写作产物进 vault 而凭证留在机器本地；配置改走共享 `.mario-skills/.env`，配 `--config-info` 溯源。 |
 
 ## 更新技能
 

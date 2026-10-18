@@ -68,7 +68,7 @@ Every skill reads the same two `.env` files. Write a key once and all skills see
 
 ```ini
 # ~/.mario-skills/.env
-VAULT_DIR=/Users/you/Documents/Obsidian   # read by diary-writer
+VAULT_DIR=/Users/you/Documents/Obsidian   # read by diary-writer, wewrite
 OPENAI_API_KEY=sk-...                     # read by whatever skill needs it
 ```
 
@@ -100,6 +100,14 @@ Skills that pull external source material into the vault, unchanged.
 |-------|-------------|
 | [`dedao-course-sync`](./skills/dedao-course-sync) | Incremental sync of the 得到 精选 / 得到头条 columns into `raw/Courses-GetIt/`. Dedupes on Dedao's `article_id` so renamed titles never re-fetch, strips page chrome, and reports JSON receipts with a non-zero exit on any partial failure. |
 | [`dankoe-letters-fetch`](./skills/dankoe-letters-fetch) | Incremental fetch of Dan Koe's newsletter into `raw/DanKoe/原文/`. Dedupes on the exact URL slug so Substack republished versions (`-ef8`) still get fetched; encodes four Substack API constraints that fail silently when violated. |
+
+### Publishing Skills
+
+Skills that take vault material out to a platform.
+
+| Skill | Description |
+|-------|-------------|
+| [`wewrite`](./skills/wewrite) | WeChat Official Account pipeline: topic → brief and claims → draft → editorial pass, with images, formatting, and draft-box push as separate opt-in steps. Ported from [imraywang/wewrite](https://github.com/imraywang/wewrite) with two changes: the output root (`WEWRITE_OUT_DIR`, default `$VAULT_DIR/output/WeWrite`) is split from the state root, so every run artifact lands in the vault while credentials stay on the machine; and config moved to the shared `.mario-skills/.env` with `--config-info` source reporting. |
 
 ## Update Skills
 

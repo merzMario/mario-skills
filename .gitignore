@@ -12,6 +12,10 @@ yarn-error.log*
 coverage/
 .nyc_output/
 
+# Python (wewrite vendored CLI)
+__pycache__/
+*.py[cod]
+
 # Skill runtime state — never commit user data
 .env
 .env.*
@@ -21,6 +25,9 @@ coverage/
 
 # Local overrides (mirrors the .baoyu-skills/ convention)
 .mario-skills/
+
+# Per-skill Python venv (wewrite --setup)
+.venv/
 
 # Agent runtime state
 .omo/
