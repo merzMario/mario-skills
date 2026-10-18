@@ -5,6 +5,28 @@ All notable changes to this marketplace. Format follows [Keep a Changelog](https
 The version here is the single source of truth — it lives in `metadata.version` in
 `.claude-plugin/marketplace.json` and is what users receive on marketplace update.
 
+## 0.6.0 - 2026-10-18
+
+### Features
+- `dedao-course-sync`: incremental sync of the 得到 精选 / 得到头条 columns into `raw/Courses-GetIt/`. Dedupe keys on Dedao's `article_id` (frontmatter), not the filename, so a renamed title never re-fetches
+- `dedao-course-sync`: config moved onto the shared `.mario-skills/.env`. `VAULT_DIR` is the same key `diary-writer` and `book-enquire-reader` already use — one write, three skills. Keys: `DEDAO_OUT_SUBDIR`, `DEDAO_SESSION`, `DEDAO_COUNT`, `DEDAO_STATE_DIR`, `OPENCLI_BIN`
+- `dedao-course-sync`: `--init` / `--init --project` / `--init --dry-run` / `--detect`, config merged per key so sibling skills' keys and user comments survive a re-run
+- `dedao-course-sync`: `--config-info` (`--json`) reports each resolved value plus the layer that supplied it; missing-config errors enumerate every location searched
+- `dedao-course-sync`: stdout is now exactly one JSON receipt per subcommand; all human-readable progress moved to stderr. Callers parse `stdout` instead of scraping prose
+
+### Fixes
+- `dedao-course-sync`: a partial failure used to exit 0 — `1 if failed and not saved else 0` meant "20 fetched, 17 saved, 3 failed" reported success, and cron or launchd never retried the three. Any failure now exits 1
+- `dedao-course-sync`: `--dry-run` no longer creates the output directory. The `mkdir` ran before the dry-run check, so a dry run mutated the vault
+- `dedao-course-sync`: the failure log moved from `scripts/.dedao-sync-errors.json` to `$DEDAO_STATE_DIR/dedao-sync-errors.json`. A marketplace-installed skill directory may be read-only, and runtime state does not belong in a code directory
+- `dedao-course-sync`: a stale failure log is deleted after a fully successful run
+- `dedao-course-sync`: `SKILL.md` claimed `--dry-run` "does not touch the browser". It does — the pending list comes from that JSON endpoint. What it guarantees is "writes no files", and the docs now say so
+- `dedao-course-sync`: the report label `跳过(同名)` was misleading. Dedup already ran on `article_id`, so that branch means a genuinely new article whose cleaned filename collided with an existing one. Now `跳过(slug 撞车)`
+- `diary-writer`: fixed a broken `LICENSE.md` link in `README.md`
+
+### Notes
+- `dedao-course-sync` keeps `VAULT`, slug-cleaning tables and body anchors as code rather than config. They travel as a set: swapping only the course ID leaves the slug rules and `body_anchor` mismatched, which produces files that are wrong but look fine.
+- Removed dead supersedes: `02-Output/03-Tools/scripts/dedao-{scrape,init,daily,convert-article,inject-image-urls}` and the `dedao-scrape` test fixture, plus the empty `10-Claude/skills/dedao-course-sync/` directory. The three skills in `~/.claude/dedao-skills-retired-2026-09-14.tar.gz` (course / jingxuan / toutiao scrapers) now live in the vault at `02-Output/03-Tools/_archive/` rather than only in `~/.claude`.
+
 ## 0.5.0 - 2026-10-15
 
 ### Breaking changes

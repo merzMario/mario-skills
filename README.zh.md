@@ -92,6 +92,14 @@ OPENAI_API_KEY=sk-...                     # 谁需要谁读自己的
 | [`book-enquire-reader`](./skills/book-enquire-reader) | 长书阅读器。把 PDF/EPUB/TXT/Markdown 导入 Vault，用 [enquire-mcp](https://github.com/oomkapwn/enquire-mcp) 混合检索按需拉切片，产出带 `[page: N]` 页码溯源的分章笔记，全程不把整章正文读进上下文。 |
 | [`diary-writer`](./skills/diary-writer) | append-only 日记写入器。一次调用往当天文件追加一个带时间戳的块。配置发现、ISO 周数、MD5 去重、备份、JSON 回执全在脚本里。 |
 
+### 内容采集类
+
+把外部素材原样灌进 vault 的技能。
+
+| 技能 | 说明 |
+|------|------|
+| [`dedao-course-sync`](./skills/dedao-course-sync) | 得到精选 / 得到头条增量同步到 `raw/Courses-GetIt/`。按得到侧 `article_id` 去重，标题改名不重抓；剥掉页面元素；JSON 回执，任一篇失败即非零退出。 |
+
 ## 更新技能
 
 1. 在 Claude Code 里执行 `/plugin`

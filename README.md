@@ -92,6 +92,14 @@ Skills that read from or write to a local markdown vault.
 | [`book-enquire-reader`](./skills/book-enquire-reader) | Long-book reader. Imports PDF/EPUB/TXT/Markdown into the vault and drives [enquire-mcp](https://github.com/oomkapwn/enquire-mcp) hybrid retrieval to produce chapter digests with `[page: N]` citations, without loading whole chapters into context. |
 | [`diary-writer`](./skills/diary-writer) | Append-only journal writer. One call appends one timestamped block to today's entry. Handles config discovery, ISO week numbers, MD5 dedup, backups, and JSON receipts. |
 
+### Content Collection Skills
+
+Skills that pull external source material into the vault, unchanged.
+
+| Skill | Description |
+|-------|-------------|
+| [`dedao-course-sync`](./skills/dedao-course-sync) | Incremental sync of the 得到 精选 / 得到头条 columns into `raw/Courses-GetIt/`. Dedupes on Dedao's `article_id` so renamed titles never re-fetch, strips page chrome, and reports JSON receipts with a non-zero exit on any partial failure. |
+
 ## Update Skills
 
 1. Run `/plugin` in Claude Code
