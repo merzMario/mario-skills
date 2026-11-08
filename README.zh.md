@@ -100,6 +100,7 @@ OPENAI_API_KEY=sk-...                     # 谁需要谁读自己的
 |------|------|
 | [`dedao-course-sync`](./skills/dedao-course-sync) | 得到精选 / 得到头条增量同步到 `raw/Courses-GetIt/`。按得到侧 `article_id` 去重，标题改名不重抓；剥掉页面元素；JSON 回执，任一篇失败即非零退出。 |
 | [`dankoe-letters-fetch`](./skills/dankoe-letters-fetch) | Dan Koe newsletter 增量抓取到 `raw/DanKoe/原文/`。按精确 slug 去重，Substack 重发版（`-ef8`）仍会抓；把四条「违反后静默出错」的 Substack API 约束写进代码而非 prompt。 |
+| [`wechat-favorites-capture`](./skills/wechat-favorites-capture) | 把微信 Mac 收藏夹搬进 Vault。frida hook PBKDF2 派生拿到密钥，逐页校验 HMAC 解密 SQLCipher 的 `favorite.db`；再把每条收藏分到主题桶和价值层；最后把文章正文抓成 Markdown 存进 `raw/`。分块 ≤6 篇——opencli 浏览器会话连抓十几篇后会整体僵死。自带解密器和词表；HTML 报告和正文抓取委派给 `wx-favorites-report` 与 `wechat-article-scraper`，向导会检查并装齐这两个依赖。 |
 
 ### 发布类
 

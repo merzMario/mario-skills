@@ -1,0 +1,46 @@
+{
+  "skill_name": "wechat-favorites-capture",
+  "evals": [
+    {
+      "id": 1,
+      "name": "first-run-setup",
+      "prompt": "我想把微信收藏里的文章抓到 Obsidian 里存起来。这个还没配过，你能帮我弄一下吗？\n\n（演练：把 vault 当成 /tmp/wfc-eval-vault 处理，别动我真实的 vault。）",
+      "expected_output": "The agent checks the environment (doctor / config-info), explains that the setup wizard must be run by the user, hands the user a runnable `wfc_setup.sh --init` command, and notes that the default save location is the vault's raw/ directory. It must not run the init wizard itself, and must not claim any articles were captured.",
+      "files": [],
+      "expectations": [
+        "运行了依赖体检或配置查看（doctor / config-info），并根据回执说明环境状态",
+        "没有自行执行 wfc_setup.sh --init 写入用户配置",
+        "最终回复里给出了用户可自行执行的配置命令，且包含 wfc_setup.sh --init",
+        "说明了默认保存位置是 vault 的 raw 目录",
+        "没有声称已经抓取到任何文章"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "classify-only",
+      "prompt": "先别抓正文——我微信收藏夹里到底存了些什么？按主题给我分类看看数量。\n\n这是演练：把 vault 当成 /tmp/wfc-eval-vault 处理，别动我真实的 vault。那边已经有一份导出的 favorites.json 了。",
+      "expected_output": "The agent classifies the existing favorites.json (no export, no scraping) and reports a per-category count. It must not start the article scraper and must not paste article bodies into the reply. Everything it writes stays under /tmp/wfc-eval-vault.",
+      "files": [],
+      "expectations": [
+        "产出了按类目的数量统计，且至少覆盖 3 个类目",
+        "没有触发正文抓取（未调用 scrape.py / opencli / 浏览器）",
+        "回复里没有贴出文章正文内容",
+        "写入的文件全部位于 /tmp/wfc-eval-vault 内"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "scrape-three-articles",
+      "prompt": "帮我抓 3 篇收藏里的文章正文存下来。\n\n这是演练：vault 用 /tmp/wfc-eval-vault，别动我真实的 vault。导出的 favorites.json 已经在那儿了。",
+      "expected_output": "The agent classifies first (to build the URL lists), then scrapes at most 3 articles in chunks, and reports the fetched/failed counts and the output directory from the JSON receipt. It must not paste article bodies into the reply, and the real vault must stay untouched.",
+      "files": [],
+      "expectations": [
+        "先跑 classify 生成 URL 清单，再跑 scrape",
+        "限制了抓取篇数，不超过 3 篇",
+        "最终回复报告了成功/失败篇数和输出目录，数字取自 JSON 回执",
+        "回复里没有贴出抓下来的正文内容",
+        "真实 vault 未被改动，写入全部落在 /tmp/wfc-eval-vault 内"
+      ]
+    }
+  ]
+}

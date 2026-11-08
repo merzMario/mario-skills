@@ -34,6 +34,10 @@ __pycache__/
 .opencode/
 .codegraph
 
+# Eval run artifacts — the test spec (skills/*/evals/evals.json) ships with the
+# skill; the run outputs, grades and agent scratch files stay local.
+skills/*/evals/runs/
+
 # Generated output
 outputs/
 tmp/

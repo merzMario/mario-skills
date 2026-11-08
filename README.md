@@ -100,6 +100,7 @@ Skills that pull external source material into the vault, unchanged.
 |-------|-------------|
 | [`dedao-course-sync`](./skills/dedao-course-sync) | Incremental sync of the 得到 精选 / 得到头条 columns into `raw/Courses-GetIt/`. Dedupes on Dedao's `article_id` so renamed titles never re-fetch, strips page chrome, and reports JSON receipts with a non-zero exit on any partial failure. |
 | [`dankoe-letters-fetch`](./skills/dankoe-letters-fetch) | Incremental fetch of Dan Koe's newsletter into `raw/DanKoe/原文/`. Dedupes on the exact URL slug so Substack republished versions (`-ef8`) still get fetched; encodes four Substack API constraints that fail silently when violated. |
+| [`wechat-favorites-capture`](./skills/wechat-favorites-capture) | Brings the WeChat Mac favorites folder into the vault. Decrypts the SQLCipher `favorite.db` via a frida-hooked PBKDF2 derivation, classifies every favorite into a topic and a value tier, then scrapes the article bodies into `raw/` as Markdown — chunked at ≤6 per browser session, because opencli's session freezes after a dozen consecutive fetches. Ships the SQLCipher decryptor and the keyword table; the HTML report and the body scraper are delegated to the `wx-favorites-report` and `wechat-article-scraper` skills, whose presence the setup wizard verifies and installs. |
 
 ### Publishing Skills
 

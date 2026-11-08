@@ -1,0 +1,39 @@
+{
+  "_comment": "favorites.json 的最小样本。真实的导出文件是 {items: [...], stats: {...}}，这里只留几条用于测试分类器和写文档。",
+  "stats": {
+    "total": 3,
+    "type_distribution": { "5": 3 }
+  },
+  "items": [
+    {
+      "id": 900001,
+      "type": 5,
+      "type_name": "文章/链接",
+      "source": "gh_exampleTech",
+      "timestamp": "2026-03-14 09:12:00",
+      "title": "我用 Coze 搭了一套小红书涨粉工作流",
+      "desc": "自动化工作流 + 提示词，从 0 到 1w 粉的全过程",
+      "link": "https://mp.weixin.qq.com/s?__biz=MzExample==&mid=2247485001&idx=1&sn=abc123&chksm=xx"
+    },
+    {
+      "id": 900002,
+      "type": 5,
+      "type_name": "文章/链接",
+      "source": "gh_exampleOps",
+      "timestamp": "2022-07-02 21:40:00",
+      "title": "带团队时怎么布置工作：四个步讲清楚",
+      "desc": "管理者的向上沟通与目标拆解",
+      "link": "https://mp.weixin.qq.com/s?__biz=MzExample2==&mid=2247485002&idx=1&sn=def456&chksm=yy"
+    },
+    {
+      "id": 900003,
+      "type": 5,
+      "type_name": "文章/链接",
+      "source": "gh_exampleOps",
+      "timestamp": "2016-05-19 12:00:00",
+      "title": "深聊 Nginx 底层原理与性能调优",
+      "desc": "后端架构、缓存、连接池",
+      "link": "https://mp.weixin.qq.com/s?__biz=MzExample2==&mid=2247485003&idx=1&sn=ghi789&chksm=zz"
+    }
+  ]
+}
