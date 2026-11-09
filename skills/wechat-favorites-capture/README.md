@@ -142,6 +142,9 @@ bash scripts/wfc_capture.sh capture [--tier T] [--limit N] [--category C] [--dry
 # 浏览器环境自检 + 自愈（capture 内部自动调用，也可单独跑）
 bash scripts/wfc_preflight.sh --session wxscrape
 
+# 重写采集目录的 README（篇数表 + 缺口台账），--check 只查不写
+python3 scripts/wfc_readme.py [--check]
+
 # 配置（人跑，不要从 LLM 调用里执行）
 bash scripts/wfc_setup.sh --init [--dry-run]
 bash scripts/wfc_setup.sh --detect

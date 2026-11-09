@@ -62,6 +62,7 @@ bash <skill-dir>/scripts/wfc_capture.sh classify    # 分类 → classified.json
 bash <skill-dir>/scripts/wfc_capture.sh scrape      # 抓正文 → articles/<分类>/
 bash <skill-dir>/scripts/wfc_capture.sh report      # 单文件 HTML 报告
 bash <skill-dir>/scripts/wfc_capture.sh doctor      # 依赖体检
+python3 <skill-dir>/scripts/wfc_readme.py            # 重写采集目录的 README（篇数表 + 缺口台账）
 ```
 
 所有命令都往 stdout 打一行 JSON 回执，人看的进度走 stderr。**每一步都要看回执**——
@@ -128,6 +129,8 @@ VAULT_DIR=/tmp/somewhere bash <skill-dir>/scripts/wfc_capture.sh capture --dry-r
 **浏览器会话会僵死。** 连抓十几篇之后 opencli 的浏览器会话会整体卡住——不是 URL 的问题，也不是标签页堆积（`tab list` 始终只有 1 个）。默认已经按 ≤6 篇分块、每篇间隔 20 秒、跑在前台。遇到连续失败**只重试失败的那几篇**，别整批重来：成功的那些已经在 `.index.json` 里，重抓会撞上重名逻辑。
 
 **失败的条目多半永远不会成功。** 原文被发布者删除、因违规下架、或作者开了隐私设置——重试一万次也一样。`scrape` 会把每篇失败的重试**一次**（会话僵死是可以重试的，失效的条目不是），再不行回执里的 `failed_items` 就是这些。汇报时如实说是失效，不是「抓取失败」，更不要尝试绕过。
+
+**失败清单是跨轮次累积的。** `scrape` 把失败的条目写进 `urls/_failed.json`，重试成功的自动移除。所以这个文件里的每一条都是**真的试过**的。`wfc_readme.py` 靠它把「抓不到」（原文没了）和「还没抓」（分层规则拦下的旧内容）分开——没有它，缺口台账会把两百条没抓过的和五条已失效的混成同一句话。
 
 **不是微信文章链接的收藏不进待抓清单。** 收藏夹里混着抖音视频页、头条、51CTO 这类
 链接，正文抓取器只处理 `mp.weixin.qq.com`——让它们进清单只会让每条空转三次重试、白等

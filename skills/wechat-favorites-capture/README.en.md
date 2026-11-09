@@ -144,6 +144,9 @@ bash scripts/wfc_capture.sh capture [--tier T] [--limit N] [--category C] [--dry
 # browser-environment self-check and self-repair (capture calls it automatically)
 bash scripts/wfc_preflight.sh --session wxscrape
 
+# rewrite the dataset README from what is on disk (counts + gap accounting)
+python3 scripts/wfc_readme.py [--check]
+
 # configuration (human only — never from an LLM call)
 bash scripts/wfc_setup.sh --init [--dry-run]
 bash scripts/wfc_setup.sh --detect

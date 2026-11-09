@@ -5,6 +5,16 @@ All notable changes to this marketplace. Format follows [Keep a Changelog](https
 The version here is the single source of truth — it lives in `metadata.version` in
 `.claude-plugin/marketplace.json` and is what users receive on marketplace update.
 
+## 0.9.1 - 2026-11-09
+
+### Fixes
+- `wechat-favorites-capture`: **the retry pass never ran, and failures were never counted.** The retry built its URL list into `rretry` but read it back as `${rtretry[@]}` — one extra letter, so the array was always empty, `run_chunk` returned immediately, and the article was never re-fetched. The receipt still counted the attempt (`retried: N`) and reported `failed: 0`, so a run where an article could not be fetched looked exactly like a clean run. Both were wrong in the same direction: the receipt said "nothing failed" while the article was missing from disk. The misspelling was invisible because a shell array that was never assigned expands to nothing under `set -u` instead of erroring. Found by running `bash -x` over a failing run and reading the trace — the retry's `run_chunk` was called with no URL at all
+- `wechat-favorites-capture`: the receipt now reports `failed` and lists the URLs in `failed_items` after the retry, instead of always claiming zero failures
+
+### Features
+- `wechat-favorites-capture`: **failures are persisted to `urls/_failed.json`** and survive across runs; entries that later succeed are dropped. The file separates "tried it and the original is gone" from "not reached yet" — without it a gap report reads as if two hundred never-attempted old articles had failed the same way as five deleted ones
+- `wechat-favorites-capture`: **`scripts/wfc_readme.py` rewrites the dataset README from what is on disk** — the per-category article table (counts, characters, CDN images) and a gap accounting section that splits each tier into landed / unreachable / not-yet-attempted. The gap section is written at the end of the file on purpose: the articles section above is replaced wholesale, so anything kept inside it is silently wiped on the next run. `--check` reports staleness without writing
+
 ## 0.9.0 - 2026-11-08
 
 ### Features

@@ -487,7 +487,7 @@ EOF
         ri=$((ri + 1)); rn=$((rn + 1))
         if [ "$rn" -ge "$WX_FAV_CHUNK" ] || [ "$ri" -ge ${#failed_urls[@]} ]; then
           local rres rm
-          rres="$(run_chunk "$cat" "$articles" "${rtretry[@]}")"
+          rres="$(run_chunk "$cat" "$articles" "${rretry[@]}")"
           while IFS= read -r rm; do
             [ -z "$rm" ] && continue
             case "$rm" in
@@ -518,6 +518,66 @@ EOF
   done <<EOF
 $pairs
 EOF
+
+  # 失败条目落盘：urls/_failed.json 跨轮次累积，已经落地的自动移除。
+  #
+  # 为什么要有这个文件：「哪些是真抓不到」和「哪些只是还没抓」必须能分开。
+  # 没有它，缺口台账会把 200 条没抓过的旧技术文章和 5 条原文已删除的
+  # 混成一坨「抓不到的」，读的人会以为全都试过了。
+  if [ "$dry_run" != "true" ]; then
+    "$py" - "$urls_dir/_failed.json" "$index_path" "$failures" <<'PY'
+import json, os, sys, glob
+failed_path, index_path, blob = sys.argv[1], sys.argv[2], sys.argv[3]
+
+data = {}
+if os.path.exists(failed_path):
+    try:
+        with open(failed_path, encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        data = {}
+
+try:
+    items = json.loads("[" + blob + "]") if blob.strip() else []
+except Exception:
+    items = []
+
+meta = {}
+try:
+    with open(index_path, encoding="utf-8") as f:
+        meta = json.load(f)
+except Exception:
+    meta = {}
+
+for it in items:
+    u = it.get("url", "")
+    if not u:
+        continue
+    m = meta.get(u, {})
+    data[u] = {
+        "category": it.get("category", "") or m.get("category", ""),
+        "tier": m.get("tier", ""),
+        "title": m.get("title", ""),
+        "timestamp": m.get("timestamp", ""),
+    }
+
+# 已经落地的（某次重试成功了）从失败清单里去掉
+landed = set()
+for p in glob.glob(os.path.join(os.path.dirname(os.path.dirname(failed_path)),
+                                "articles", "*", ".index.json")):
+    try:
+        with open(p, encoding="utf-8") as f:
+            landed.update(json.load(f).keys())
+    except Exception:
+        pass
+for u in list(data):
+    if u in landed:
+        del data[u]
+
+with open(failed_path, "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False, indent=2, sort_keys=True)
+PY
+  fi
 
   if [ "$dry_run" = "true" ]; then
     printf '{"ok":true,"command":"scrape","dry_run":true,"planned":%s,"articles_dir":"%s"}\n' \
